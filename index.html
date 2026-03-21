@@ -2,584 +2,894 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MediLine | Premium Healthcare</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediLine - Healthcare Finder</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#0F62FE',
-                        secondary: '#6929C4',
-                        accent: '#00BAAD',
-                        background: '#F2F4F8',
-                        surface: '#FFFFFF',
-                        textMain: '#161616',
-                        textMuted: '#525252'
-                    },
-                    fontFamily: { sans: ['Inter', 'sans-serif'] },
-                    borderRadius: {
-                        'xl': '1.25rem',
-                        '2xl': '1.5rem',
-                        '3xl': '2rem',
-                    }
-                }
-            }
-        }
-    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        .scrollbar-hide::-webkit-scrollbar { display: none; }
-        .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
-        
-        .glass {
-            background: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #F8FAFC;
+            -webkit-tap-highlight-color: transparent;
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
         }
 
-        @keyframes fadeInUp {
-            from { transform: translateY(10px); opacity: 0; }
-            to { transform: translateY(0); opacity: 1; }
+        .app-container {
+            max-width: 450px;
+            margin: 0 auto;
+            min-height: 100vh;
+            position: relative;
+            background: white;
+            box-shadow: 0 0 50px rgba(0,0,0,0.1);
         }
 
-        .animate-fade-in { animation: fadeInUp 0.4s ease-out forwards; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+        .status-low { background-color: #DCFCE7; color: #15803D; }
+        .status-moderate { background-color: #FFEDD5; color: #9A3412; }
+        .status-busy { background-color: #FEE2E2; color: #B91C1C; }
         
-        .page { display: none; height: 100%; flex-direction: column; }
-        .page.active { display: flex; animation: fadeInUp 0.3s ease-out; }
-        
-        .nav-active { color: #0F62FE; position: relative; }
-        .nav-active::after {
-            content: '';
+        .nav-item.active { color: #2563EB; }
+        .category-card:active { transform: scale(0.92); }
+
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #0f172a;
+            color: #fff;
+            text-align: center;
+            border-radius: 20px;
+            padding: 16px;
+            position: fixed;
+            z-index: 6000;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%) translateY(100px);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            opacity: 0;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+        }
+        #toast.show { visibility: visible; opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        .page {
             position: absolute;
-            bottom: -8px;
-            width: 4px;
-            height: 4px;
-            background: #0F62FE;
+            top: 0;
+            left: 0;
+            width: 100%;
+            min-height: 100vh;
+            background: #F8FAFC;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+        }
+
+        .view-section { display: none; }
+        .view-section.active { display: block; animation: fadeIn 0.3s ease; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .page-hidden { display: none !important; }
+        .exit-left { transform: translateX(-100%); opacity: 0; }
+        .enter-right { transform: translateX(100%); opacity: 0; }
+
+        /* Map Placeholder Style */
+        .map-container {
+            background: #e2e8f0;
+            background-image: radial-gradient(#cbd5e1 2px, transparent 2px);
+            background-size: 20px 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .map-marker {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #ef4444;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+            animation: bounce 2s infinite;
+        }
+        @keyframes bounce { 0%, 100% { transform: translate(-50%, -60%); } 50% { transform: translate(-50%, -40%); } }
+
+        .login-input, .profile-input {
+            transition: all 0.3s ease;
+            border: 2px solid #f1f5f9;
+        }
+        .login-input:focus, .profile-input:focus {
+            border-color: #2563EB;
+            background-color: #fff;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.08);
+        }
+
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #2563EB;
             border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block;
         }
 
-        .doctor-card {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        .doctor-card:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(0,0,0,0.05); }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        .category-item {
-            min-width: 90px;
-            max-width: 100px;
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+            z-index: 5500;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
         }
+        .modal-overlay.active { display: flex; }
 
-        /* Detail View Transition */
-        #doctor-detail-view {
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+        .bottom-nav { transition: transform 0.4s ease; }
     </style>
 </head>
-<body class="bg-slate-900 flex justify-center min-h-screen font-sans">
+<body>
 
-    <div class="bg-background w-full max-w-md h-screen relative shadow-2xl overflow-hidden flex flex-col">
+    <div class="app-container">
         
-        <!-- Premium Header -->
-        <header id="main-header" class="bg-background/80 backdrop-blur-md p-5 pb-2 flex justify-between items-center z-40 sticky top-0">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg shadow-primary/30">
-                    <i class="fa-solid fa-plus text-white text-xl"></i>
+        <!-- ================= LOGIN PAGE ================= -->
+        <div id="login-page" class="page px-8 flex flex-col justify-center z-[100]">
+            <div class="mb-12 text-center">
+                <div class="w-20 h-20 bg-blue-600 rounded-[28px] flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-blue-200">
+                    <i class="fa-solid fa-staff-snake text-white text-4xl"></i>
                 </div>
+                <h1 class="text-3xl font-extrabold text-slate-900">MediLine</h1>
+                <p class="text-slate-500 mt-2 font-medium">Your Health, One Tap Away</p>
+            </div>
+
+            <form id="loginForm" onsubmit="handleAuth(event)" class="space-y-6">
                 <div>
-                    <h1 class="text-textMain text-xl font-bold leading-none">MediLine</h1>
-                    <span id="app-subtitle" class="text-textMuted text-[12px] font-medium">Hello, John 👋</span>
+                    <label class="block text-sm font-bold text-slate-700 mb-2 ml-1">Email</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-at absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="email" id="email" required 
+                               class="login-input w-full pl-12 pr-4 py-4 rounded-2xl outline-none bg-slate-50 text-slate-800" 
+                               placeholder="Enter your email">
+                    </div>
                 </div>
+
+                <div>
+                    <label class="block text-sm font-bold text-slate-700 mb-2 ml-1">Password</label>
+                    <div class="relative">
+                        <i class="fa-solid fa-shield-halved absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="password" id="password" required 
+                               class="login-input w-full pl-12 pr-4 py-4 rounded-2xl outline-none bg-slate-50 text-slate-800" 
+                               placeholder="••••••••">
+                    </div>
+                </div>
+
+                <button type="submit" id="loginBtn" 
+                        class="w-full bg-blue-600 text-white py-4 rounded-2xl font-bold text-lg shadow-xl shadow-blue-100 active:scale-95 transition-all">
+                    Sign In
+                </button>
+            </form>
+
+            <div class="mt-8 text-center">
+                <p class="text-slate-400 text-sm font-medium">
+                    New to MediLine? <a href="#" class="text-blue-600 font-bold ml-1">Create Account</a>
+                </p>
             </div>
-            <button onclick="navigateTo('Profile')" class="relative">
-                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=John" alt="Avatar" class="w-10 h-10 rounded-full border-2 border-white shadow-sm">
-                <div class="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 border-2 border-white rounded-full"></div>
-            </button>
-        </header>
-
-        <!-- Dynamic Content -->
-        <div class="flex-1 overflow-hidden relative">
-            
-            <!-- HOME PAGE -->
-            <main id="page-Home" class="page active overflow-y-auto pb-24 px-5 scrollbar-hide">
-                
-                <div class="flex items-center justify-between mt-2 mb-4 animate-fade-in" style="animation-delay: 0.1s">
-                    <div class="flex items-center text-textMuted bg-white/50 px-3 py-1.5 rounded-full border border-gray-200">
-                        <i class="fa-solid fa-location-dot text-primary text-xs mr-2"></i>
-                        <span class="text-xs font-semibold">Kolkata, IN</span>
-                    </div>
-                </div>
-
-                <div class="relative mb-6 animate-fade-in" style="animation-delay: 0.15s">
-                    <div class="absolute inset-y-0 left-4 flex items-center pointer-events-none text-gray-400">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                    </div>
-                    <input type="text" id="doctorSearch" placeholder="Search specialist, clinic..." oninput="filterContent()"
-                           class="w-full pl-12 pr-4 py-3.5 rounded-2xl bg-white border-none shadow-sm focus:ring-2 focus:ring-primary/20 text-sm transition-all">
-                </div>
-
-                <!-- Quick Stats -->
-                <div class="grid grid-cols-2 gap-3 mb-6 animate-fade-in" style="animation-delay: 0.2s">
-                    <div class="bg-primary p-4 rounded-3xl text-white shadow-xl shadow-primary/20">
-                        <i class="fa-solid fa-bolt-lightning mb-2 opacity-80 text-sm"></i>
-                        <p class="text-[10px] opacity-80 mb-0.5 uppercase font-bold tracking-wider">Next Visit</p>
-                        <p class="text-xs font-bold truncate" id="next-apt">None Scheduled</p>
-                    </div>
-                    <div class="bg-accent p-4 rounded-3xl text-white shadow-xl shadow-accent/20">
-                        <i class="fa-solid fa-shield-heart mb-2 opacity-80 text-sm"></i>
-                        <p class="text-[10px] opacity-80 mb-0.5 uppercase font-bold tracking-wider">Health Score</p>
-                        <p class="text-xs font-bold">92 / 100</p>
-                    </div>
-                </div>
-
-                <!-- Categories -->
-                <div class="mb-6 animate-fade-in" style="animation-delay: 0.25s">
-                    <div class="flex justify-between items-center mb-3">
-                        <h2 class="text-sm font-black uppercase tracking-widest text-textMuted/60">Specialties</h2>
-                    </div>
-                    <div class="flex overflow-x-auto gap-3 pb-2 scrollbar-hide" id="categoryContainer"></div>
-                </div>
-
-                <div class="flex justify-between items-center mb-4 animate-fade-in" style="animation-delay: 0.35s">
-                    <h2 class="text-lg font-bold text-textMain" id="listTitle">Recommended</h2>
-                    <button onclick="resetFilters()" class="text-primary text-[10px] font-black uppercase tracking-wider hidden" id="resetBtn">Clear Filter</button>
-                </div>
-
-                <div class="space-y-4 pb-4 animate-fade-in" id="doctorList" style="animation-delay: 0.4s"></div>
-            </main>
-
-            <!-- DOCTOR DETAIL VIEW (OVERLAY) -->
-            <div id="doctor-detail-view" class="hidden fixed inset-0 bg-background z-[100] flex flex-col">
-                <div class="relative h-64 w-full">
-                    <img id="detail-doc-banner" src="" class="w-full h-full object-cover" style="filter: brightness(0.7)">
-                    <button onclick="closeDoctorDetail()" class="absolute top-6 left-6 w-10 h-10 glass rounded-full flex items-center justify-center text-white">
-                        <i class="fa-solid fa-arrow-left"></i>
-                    </button>
-                    <div class="absolute -bottom-8 left-6">
-                        <img id="detail-doc-img" src="" class="w-24 h-24 rounded-3xl border-4 border-white shadow-lg bg-white">
-                    </div>
-                </div>
-
-                <div class="flex-1 overflow-y-auto px-6 pt-12 pb-10 scrollbar-hide">
-                    <div class="flex justify-between items-start mb-4">
-                        <div>
-                            <h2 id="detail-doc-name" class="text-2xl font-black text-textMain"></h2>
-                            <p id="detail-doc-specialty" class="text-primary font-bold text-sm"></p>
-                        </div>
-                        <div class="bg-amber-50 text-amber-500 px-3 py-1.5 rounded-xl flex items-center gap-1.5">
-                            <i class="fa-solid fa-star text-xs"></i>
-                            <span id="detail-doc-rating" class="font-black text-sm"></span>
-                        </div>
-                    </div>
-
-                    <div class="flex gap-4 mb-8">
-                        <div class="flex-1 bg-white p-3 rounded-2xl border border-gray-100 text-center">
-                            <p class="text-[10px] text-textMuted uppercase font-bold tracking-tighter">Experience</p>
-                            <p class="text-sm font-black">12+ Years</p>
-                        </div>
-                        <div class="flex-1 bg-white p-3 rounded-2xl border border-gray-100 text-center">
-                            <p class="text-[10px] text-textMuted uppercase font-bold tracking-tighter">Patients</p>
-                            <p class="text-sm font-black">2.5k+</p>
-                        </div>
-                        <div class="flex-1 bg-white p-3 rounded-2xl border border-gray-100 text-center">
-                            <p class="text-[10px] text-textMuted uppercase font-bold tracking-tighter">Reviews</p>
-                            <p class="text-sm font-black">840</p>
-                        </div>
-                    </div>
-
-                    <div class="mb-8">
-                        <h3 class="text-sm font-black uppercase tracking-widest text-textMuted/60 mb-3">About Doctor</h3>
-                        <p id="detail-doc-about" class="text-sm text-textMuted leading-relaxed"></p>
-                    </div>
-
-                    <div class="mb-8">
-                        <h3 class="text-sm font-black uppercase tracking-widest text-textMuted/60 mb-3">Clinic Facilities</h3>
-                        <div id="detail-facilities" class="grid grid-cols-2 gap-3">
-                            <!-- Facilities injected here -->
-                        </div>
-                    </div>
-
-                    <div class="mb-8">
-                        <h3 class="text-sm font-black uppercase tracking-widest text-textMuted/60 mb-3">Availability</h3>
-                        <div class="bg-white p-4 rounded-3xl border border-gray-100">
-                            <div class="flex justify-between items-center mb-2 pb-2 border-b border-gray-50">
-                                <span class="text-xs font-bold text-textMain">Mon - Fri</span>
-                                <span class="text-xs font-bold text-primary">09:00 AM - 05:00 PM</span>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-xs font-bold text-textMain">Saturday</span>
-                                <span class="text-xs font-bold text-primary">10:00 AM - 02:00 PM</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="p-6 bg-white shadow-[0_-10px_30px_rgba(0,0,0,0.03)] border-t border-gray-100 flex items-center justify-between gap-6">
-                    <div>
-                        <p class="text-[10px] text-textMuted font-bold uppercase tracking-widest">Consultation Fee</p>
-                        <p id="detail-doc-fee" class="text-xl font-black text-textMain"></p>
-                    </div>
-                    <button id="detail-book-btn" class="flex-1 bg-primary text-white py-4 rounded-2xl font-black text-sm shadow-xl shadow-primary/30">
-                        BOOK APPOINTMENT
-                    </button>
-                </div>
-            </div>
-
-            <!-- APPOINTMENTS PAGE -->
-            <main id="page-Appointments" class="page overflow-y-auto pb-24 px-5 scrollbar-hide">
-                <h2 class="text-2xl font-bold text-textMain mt-4 mb-6">Your Bookings</h2>
-                <div id="appointmentsList" class="space-y-4">
-                    <div class="text-center py-20 text-textMuted" id="emptyAppointments">
-                        <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <i class="fa-solid fa-calendar-xmark text-3xl opacity-30"></i>
-                        </div>
-                        <p class="font-medium text-sm">No active bookings found</p>
-                        <button onclick="navigateTo('Home')" class="mt-4 text-primary font-bold text-sm">Find a doctor</button>
-                    </div>
-                </div>
-            </main>
-
-            <!-- ALERTS PAGE -->
-            <main id="page-Notifications" class="page overflow-y-auto pb-24 px-5 scrollbar-hide">
-                <h2 class="text-2xl font-bold text-textMain mt-4 mb-6">Updates</h2>
-                <div class="space-y-4">
-                    <div class="bg-white p-5 rounded-3xl shadow-sm border border-gray-100">
-                        <div class="flex items-center gap-3 mb-2">
-                            <div class="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center">
-                                <i class="fa-solid fa-circle-check"></i>
-                            </div>
-                            <h4 class="font-bold text-sm">Profile Verified</h4>
-                        </div>
-                        <p class="text-xs text-textMuted leading-relaxed">Verified documents. You're ready!</p>
-                        <span class="text-[10px] font-bold text-gray-300 mt-3 block uppercase tracking-tighter">10:45 AM</span>
-                    </div>
-                </div>
-            </main>
-
-            <!-- PROFILE PAGE -->
-            <main id="page-Profile" class="page overflow-y-auto pb-24 px-5 scrollbar-hide">
-                <div class="bg-white rounded-[2.5rem] p-6 mt-4 shadow-sm border border-gray-100 text-center">
-                    <div class="relative w-20 h-20 mx-auto mb-4">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=John" alt="Avatar" class="rounded-full border-4 border-gray-50 shadow-inner">
-                        <button class="absolute bottom-0 right-0 w-7 h-7 bg-primary text-white rounded-full border-2 border-white flex items-center justify-center text-[10px]">
-                            <i class="fa-solid fa-camera"></i>
-                        </button>
-                    </div>
-                    <h3 class="text-lg font-bold">John Doe</h3>
-                    <p class="text-textMuted text-[10px] font-bold uppercase tracking-widest mt-1">Premium Member</p>
-                </div>
-            </main>
         </div>
 
-        <!-- Navigation -->
-        <nav id="bottom-nav" class="absolute bottom-0 w-full bg-white px-8 py-5 z-40 flex justify-between items-center rounded-t-[2.5rem] shadow-[0_-10px_40px_rgba(0,0,0,0.06)]">
-            <button class="nav-btn flex items-center justify-center w-10 h-10 nav-active" data-tab="Home" onclick="navigateTo('Home')">
-                <i class="fa-solid fa-house-chimney text-lg"></i>
-            </button>
-            <button class="nav-btn flex items-center justify-center w-10 h-10 text-gray-400" data-tab="Appointments" onclick="navigateTo('Appointments')">
-                <i class="fa-solid fa-calendar-day text-lg"></i>
-            </button>
-            <button class="nav-btn flex items-center justify-center w-10 h-10 text-gray-400" data-tab="Notifications" onclick="navigateTo('Notifications')">
-                <i class="fa-solid fa-comment-medical text-lg"></i>
-            </button>
-            <button class="nav-btn flex items-center justify-center w-10 h-10 text-gray-400" data-tab="Profile" onclick="navigateTo('Profile')">
-                <i class="fa-solid fa-user-ninja text-lg"></i>
-            </button>
-        </nav>
-
-        <!-- Toast Notification -->
-        <div id="toast" class="hidden absolute bottom-28 left-1/2 transform -translate-x-1/2 glass px-6 py-4 rounded-3xl shadow-2xl z-50 whitespace-nowrap text-xs font-bold border-white/50"></div>
-
-    </div>
-
-    <script>
-        const doctors = [
-            { 
-                id: 1, 
-                name: 'Dr. Amit Sharma', 
-                specialty: 'General Physician', 
-                rating: 4.5, 
-                fee: 500, 
-                distance: '1.2 km', 
-                status: 'Low Wait', 
-                color: 'success', 
-                icon: 'stethoscope',
-                about: 'Dr. Amit Sharma has over 12 years of experience in internal medicine. He specializes in treating chronic illnesses and providing preventive care for families in the local community.',
-                facilities: ['Pharmacy', 'X-Ray', 'Waiting Lounge', 'Emergency Care']
-            },
-            { 
-                id: 2, 
-                name: 'Dr. Priya Patel', 
-                specialty: 'Cardiologist', 
-                rating: 4.8, 
-                fee: 800, 
-                distance: '2.5 km', 
-                status: 'Busy', 
-                color: 'danger', 
-                icon: 'heart-pulse',
-                about: 'Recognized as one of the top cardiologists, Dr. Patel focuses on non-invasive cardiology and cardiovascular disease prevention with advanced diagnostic tools.',
-                facilities: ['ECG Center', 'Pathology Lab', '24/7 Support', 'Recovery Room']
-            },
-            { 
-                id: 3, 
-                name: 'Dr. Rohan Das', 
-                specialty: 'Dentist', 
-                rating: 4.6, 
-                fee: 400, 
-                distance: '0.8 km', 
-                status: 'Moderate', 
-                color: 'warning', 
-                icon: 'tooth',
-                about: 'Dr. Rohan is dedicated to creating healthy smiles through painless dentistry. He provides comprehensive dental solutions from cleaning to complex surgery.',
-                facilities: ['Digital X-Ray', 'Pediatric Area', 'In-house Lab', 'Comfort Seating']
-            },
-            { 
-                id: 4, 
-                name: 'Dr. S. Mukherjee', 
-                specialty: 'Dermatologist', 
-                rating: 4.3, 
-                fee: 600, 
-                distance: '3.1 km', 
-                status: 'Low Wait', 
-                color: 'success', 
-                icon: 'spa',
-                about: 'A skin health specialist focusing on cosmetic dermatology and clinical treatments for skin disorders with modern laser technology.',
-                facilities: ['Laser Room', 'Consultation Pods', 'Skin Pharmacy', 'Hydra-Facial Unit']
-            }
-        ];
-
-        const categories = [
-            { name: 'Physician', icon: 'stethoscope' },
-            { name: 'Dentist', icon: 'tooth' },
-            { name: 'Heart', icon: 'heart-pulse' },
-            { name: 'Skin', icon: 'spa' }
-        ];
-
-        const specialtyMap = {
-            'Physician': 'General Physician',
-            'Dentist': 'Dentist',
-            'Heart': 'Cardiologist',
-            'Skin': 'Dermatologist'
-        };
-
-        const facilityIcons = {
-            'Pharmacy': 'pills',
-            'X-Ray': 'x-ray',
-            'Waiting Lounge': 'couch',
-            'Emergency Care': 'truck-medical',
-            'ECG Center': 'bolt',
-            'Pathology Lab': 'flask',
-            '24/7 Support': 'headset',
-            'Recovery Room': 'bed',
-            'Digital X-Ray': 'x-ray',
-            'Pediatric Area': 'baby',
-            'In-house Lab': 'vial',
-            'Comfort Seating': 'chair',
-            'Laser Room': 'wand-sparkles',
-            'Consultation Pods': 'door-open',
-            'Skin Pharmacy': 'spray-can-sparkles',
-            'Hydra-Facial Unit': 'droplet'
-        };
-
-        let appointments = [];
-        let activeCategory = null;
-
-        window.onload = () => {
-            renderCategories();
-            renderDoctors(doctors);
-        };
-
-        function renderCategories() {
-            const container = document.getElementById('categoryContainer');
-            container.innerHTML = categories.map(cat => `
-                <button onclick="filterByCategory('${cat.name}')" id="cat-${cat.name}" 
-                    class="category-item flex-shrink-0 flex flex-col items-center justify-center bg-white px-2 py-4 rounded-2xl shadow-sm border border-gray-100 group transition-all">
-                    <div class="w-10 h-10 rounded-xl flex items-center justify-center text-primary bg-primary/5 group-hover:bg-primary group-hover:text-white transition-all mb-2">
-                        <i class="fa-solid fa-${cat.icon} text-sm"></i>
-                    </div>
-                    <span class="text-[11px] font-bold text-textMain text-center leading-tight">${cat.name}</span>
-                </button>
-            `).join('');
-        }
-
-        function renderDoctors(data) {
-            const list = document.getElementById('doctorList');
-            if (data.length === 0) {
-                list.innerHTML = `<div class="text-center py-20 text-textMuted font-medium italic text-sm">No specialists found</div>`;
-                return;
-            }
-            list.innerHTML = data.map(doc => `
-                <div onclick="openDoctorDetail(${doc.id})" class="doctor-card bg-white rounded-3xl p-4 border border-gray-100 cursor-pointer">
-                    <div class="flex items-center gap-4 mb-4">
-                        <div class="w-14 h-14 rounded-2xl overflow-hidden bg-slate-100 flex-shrink-0 relative">
-                             <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${doc.name}" alt="doc" class="w-full h-full object-cover">
-                             <div class="absolute bottom-1 right-1 w-2.5 h-2.5 bg-${doc.color === 'success' ? 'green-500' : doc.color === 'danger' ? 'red-500' : 'orange-500'} rounded-full border-2 border-white"></div>
+        <!-- ================= MAIN DASHBOARD ================= -->
+        <div id="main-dashboard" class="page page-hidden flex flex-col">
+            
+            <!-- Dynamic Viewport -->
+            <div id="view-container" class="flex-1 overflow-y-auto">
+                
+                <!-- HOME VIEW -->
+                <div id="view-home" class="view-section active">
+                    <header class="sticky top-0 z-40 bg-white/80 backdrop-blur-md px-6 pt-6 pb-4 flex justify-between items-center border-b border-slate-100">
+                        <div>
+                            <h1 class="text-xl font-extrabold text-slate-900">MediLine</h1>
+                            <div class="flex items-center text-blue-600 text-[10px] font-bold mt-0.5 cursor-pointer" onclick="showToast('Locating...')">
+                                <i class="fa-solid fa-location-dot mr-1"></i>
+                                <span id="current-location">KOLKATA, INDIA</span>
+                            </div>
                         </div>
-                        <div class="flex-1 min-w-0">
-                            <div class="flex justify-between items-start">
-                                <h3 class="font-bold text-textMain text-sm truncate pr-2">${doc.name}</h3>
-                                <div class="flex items-center text-amber-500 bg-amber-50 px-1.5 py-0.5 rounded-lg flex-shrink-0">
-                                    <i class="fa-solid fa-star text-[9px] mr-1"></i>
-                                    <span class="text-[10px] font-black">${doc.rating}</span>
+                        <div class="w-10 h-10 rounded-full border-2 border-blue-50 bg-blue-100 overflow-hidden shadow-inner cursor-pointer" onclick="navigateTo('Profile')">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="User" id="header-avatar">
+                        </div>
+                    </header>
+
+                    <main class="px-6 py-6 space-y-8 pb-32">
+                        <!-- Search -->
+                        <div class="relative group">
+                            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                            <input type="text" id="doctorSearch" oninput="filterDoctors()"
+                                   class="w-full pl-12 pr-4 py-4 bg-white rounded-2xl shadow-sm border border-transparent focus:border-blue-100 outline-none text-sm font-medium text-slate-700"
+                                   placeholder="Search doctors, symptoms...">
+                        </div>
+
+                        <!-- Specialties -->
+                        <section>
+                            <div class="flex justify-between items-end mb-4 px-1">
+                                <h2 class="text-lg font-bold text-slate-900">Specialties</h2>
+                                <button onclick="navigateTo('AllSpecialties')" class="text-blue-600 text-xs font-bold uppercase tracking-wider active:opacity-50 transition-opacity">See All</button>
+                            </div>
+                            <div class="flex space-x-4 overflow-x-auto hide-scrollbar">
+                                <div onclick="filterByCategory('General')" class="category-card flex-shrink-0 w-20 text-center space-y-2 cursor-pointer">
+                                    <div class="w-20 h-20 bg-blue-50 rounded-3xl flex items-center justify-center text-blue-600 text-2xl shadow-sm">
+                                        <i class="fa-solid fa-stethoscope"></i>
+                                    </div>
+                                    <span class="text-[11px] font-bold text-slate-600 uppercase tracking-tighter">General</span>
+                                </div>
+                                <div onclick="filterByCategory('Dental')" class="category-card flex-shrink-0 w-20 text-center space-y-2 cursor-pointer">
+                                    <div class="w-20 h-20 bg-emerald-50 rounded-3xl flex items-center justify-center text-emerald-600 text-2xl shadow-sm">
+                                        <i class="fa-solid fa-tooth"></i>
+                                    </div>
+                                    <span class="text-[11px] font-bold text-slate-600 uppercase tracking-tighter">Dental</span>
+                                </div>
+                                <div onclick="filterByCategory('Heart')" class="category-card flex-shrink-0 w-20 text-center space-y-2 cursor-pointer">
+                                    <div class="w-20 h-20 bg-rose-50 rounded-3xl flex items-center justify-center text-rose-600 text-2xl shadow-sm">
+                                        <i class="fa-solid fa-heart-pulse"></i>
+                                    </div>
+                                    <span class="text-[11px] font-bold text-slate-600 uppercase tracking-tighter">Heart</span>
+                                </div>
+                                <div onclick="filterByCategory('Eye')" class="category-card flex-shrink-0 w-20 text-center space-y-2 cursor-pointer">
+                                    <div class="w-20 h-20 bg-amber-50 rounded-3xl flex items-center justify-center text-amber-600 text-2xl shadow-sm">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </div>
+                                    <span class="text-[11px] font-bold text-slate-600 uppercase tracking-tighter">Eye Care</span>
                                 </div>
                             </div>
-                            <p class="text-[11px] text-textMuted font-medium mt-0.5">${doc.specialty}</p>
-                            <div class="flex items-center gap-2 mt-1.5">
-                                <span class="text-[9px] font-bold text-textMuted flex items-center">
-                                    <i class="fa-solid fa-location-dot mr-1 opacity-50"></i> ${doc.distance}
-                                </span>
+                        </section>
+
+                        <!-- Nearby Doctors List -->
+                        <section id="doctor-list" class="space-y-4">
+                            <!-- Dynamic Injection -->
+                        </section>
+                    </main>
+                </div>
+
+                <!-- DOCTOR DETAILS VIEW -->
+                <div id="view-doctordetails" class="view-section pb-32">
+                    <div id="doctor-profile-content">
+                        <!-- Dynamic Injection -->
+                    </div>
+                </div>
+
+                <!-- ALL SPECIALTIES VIEW -->
+                <div id="view-allspecialties" class="view-section px-6 pt-10 pb-32">
+                    <div class="flex items-center space-x-4 mb-6">
+                        <button onclick="navigateTo('Home')" class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <h2 class="text-2xl font-extrabold text-slate-900">All Specialties</h2>
+                    </div>
+                    <div class="relative mb-8">
+                        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                        <input type="text" id="specialtySearch" oninput="filterSpecialtyList()"
+                               class="w-full pl-12 pr-4 py-4 bg-white rounded-2xl shadow-sm border border-slate-100 outline-none text-sm"
+                               placeholder="Search specialty...">
+                    </div>
+                    <div id="specialties-grid" class="grid grid-cols-3 gap-4"></div>
+                </div>
+
+                <!-- SCHEDULE VIEW -->
+                <div id="view-schedule" class="view-section px-6 pt-10 pb-32">
+                    <h2 class="text-2xl font-extrabold text-slate-900 mb-6">Upcoming Visits</h2>
+                    <div id="appointments-container" class="space-y-4"></div>
+                </div>
+
+                <!-- REPORTS VIEW -->
+                <div id="view-reports" class="view-section px-6 pt-10 pb-32">
+                    <h2 class="text-2xl font-extrabold text-slate-900 mb-2">Medical Reports</h2>
+                    <p class="text-slate-500 text-sm mb-8">Access your digital health history</p>
+                    <div class="space-y-4">
+                        <div class="bg-white p-5 rounded-3xl shadow-sm flex items-center justify-between border border-slate-100" onclick="showToast('Downloading PDF...')">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-12 h-12 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-600">
+                                    <i class="fa-solid fa-file-pdf text-xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-bold text-slate-800">Blood Test Results</h4>
+                                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">MAR 15, 2024</p>
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-download text-slate-300"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PROFILE VIEW -->
+                <div id="view-profile" class="view-section px-6 pt-10 pb-32">
+                    <div class="text-center mb-8">
+                        <div class="w-24 h-24 rounded-[32px] bg-blue-100 mx-auto mb-4 border-4 border-white shadow-xl overflow-hidden">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=Felix" alt="User" id="profile-avatar">
+                        </div>
+                        <h2 class="text-xl font-bold text-slate-900" id="profile-display-name">Patient Name</h2>
+                        <p class="text-slate-500 text-sm" id="profile-display-blood">Blood Group: B+ Positive</p>
+                    </div>
+
+                    <div class="bg-white rounded-[32px] shadow-sm border border-slate-100 divide-y divide-slate-50 overflow-hidden mb-6">
+                        <!-- Edit Profile Trigger -->
+                        <div class="p-5 flex items-center justify-between cursor-pointer active:bg-slate-50" onclick="navigateTo('EditProfile')">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
+                                    <i class="fa-solid fa-user-pen"></i>
+                                </div>
+                                <span class="font-bold text-slate-700">Edit Profile</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+                        </div>
+
+                        <!-- Payment History Trigger -->
+                        <div class="p-5 flex items-center justify-between cursor-pointer active:bg-slate-50" onclick="navigateTo('Payments')">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-10 h-10 bg-emerald-50 rounded-xl flex items-center justify-center text-emerald-600">
+                                    <i class="fa-solid fa-credit-card"></i>
+                                </div>
+                                <span class="font-bold text-slate-700">Payment History</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+                        </div>
+
+                        <!-- Feedback Trigger -->
+                        <div class="p-5 flex items-center justify-between cursor-pointer active:bg-slate-50" onclick="navigateTo('Feedback')">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-10 h-10 bg-amber-50 rounded-xl flex items-center justify-center text-amber-600">
+                                    <i class="fa-solid fa-comment-dots"></i>
+                                </div>
+                                <span class="font-bold text-slate-700">Submit Feedback</span>
+                            </div>
+                            <i class="fa-solid fa-chevron-right text-slate-300 text-xs"></i>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-[32px] shadow-sm border border-slate-100 divide-y divide-slate-50 overflow-hidden">
+                        <div class="p-5 flex items-center justify-between cursor-pointer text-rose-600 active:bg-rose-50" onclick="location.reload()">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-10 h-10 bg-rose-50 rounded-xl flex items-center justify-center">
+                                    <i class="fa-solid fa-power-off"></i>
+                                </div>
+                                <span class="font-bold">Logout</span>
                             </div>
                         </div>
                     </div>
-                    <div class="flex items-center justify-between gap-3 pt-3 border-t border-gray-50">
-                        <div class="flex flex-col">
-                            <span class="text-[9px] uppercase tracking-widest text-textMuted/60 font-black">Fee</span>
-                            <span class="text-xs font-black text-textMain">₹${doc.fee}</span>
+                </div>
+
+                <!-- EDIT PROFILE VIEW -->
+                <div id="view-editprofile" class="view-section px-6 pt-10 pb-32">
+                    <div class="flex items-center space-x-4 mb-8">
+                        <button onclick="navigateTo('Profile')" class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <h2 class="text-2xl font-extrabold text-slate-900">Edit Profile</h2>
+                    </div>
+                    
+                    <form onsubmit="saveProfile(event)" class="space-y-6">
+                        <div>
+                            <label class="block text-xs font-black uppercase text-slate-400 mb-2 ml-1">Full Name</label>
+                            <input type="text" id="edit-name" required class="profile-input w-full px-5 py-4 rounded-2xl bg-white outline-none text-slate-700 font-bold" placeholder="John Doe">
                         </div>
-                        <button onclick="event.stopPropagation(); bookAppointment(${doc.id})" class="bg-primary hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl text-[11px] font-black tracking-wide transition-all active:scale-95 shadow-lg shadow-primary/20">
-                            BOOK VISIT
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-black uppercase text-slate-400 mb-2 ml-1">Blood Group</label>
+                                <select id="edit-blood" class="profile-input w-full px-5 py-4 rounded-2xl bg-white outline-none text-slate-700 font-bold appearance-none">
+                                    <option value="A+">A+</option>
+                                    <option value="B+">B+</option>
+                                    <option value="O+">O+</option>
+                                    <option value="AB+">AB+</option>
+                                    <option value="A-">A-</option>
+                                    <option value="B-">B-</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-xs font-black uppercase text-slate-400 mb-2 ml-1">Gender</label>
+                                <select id="edit-gender" class="profile-input w-full px-5 py-4 rounded-2xl bg-white outline-none text-slate-700 font-bold appearance-none">
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-black uppercase text-slate-400 mb-2 ml-1">Phone Number</label>
+                            <input type="tel" id="edit-phone" class="profile-input w-full px-5 py-4 rounded-2xl bg-white outline-none text-slate-700 font-bold" placeholder="+91 98765 43210">
+                        </div>
+                        <button type="submit" class="w-full bg-blue-600 text-white py-5 rounded-[24px] font-bold text-lg shadow-xl shadow-blue-100 mt-4 active:scale-95 transition-transform">
+                            Save Changes
+                        </button>
+                    </form>
+                </div>
+
+                <!-- PAYMENTS VIEW -->
+                <div id="view-payments" class="view-section px-6 pt-10 pb-32">
+                    <div class="flex items-center space-x-4 mb-8">
+                        <button onclick="navigateTo('Profile')" class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <h2 class="text-2xl font-extrabold text-slate-900">Transactions</h2>
+                    </div>
+                    <div id="payments-list" class="space-y-4">
+                        <!-- Dynamic Injection -->
+                    </div>
+                </div>
+
+                <!-- FEEDBACK VIEW -->
+                <div id="view-feedback" class="view-section px-6 pt-10 pb-32">
+                    <div class="flex items-center space-x-4 mb-4">
+                        <button onclick="navigateTo('Profile')" class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-600">
+                            <i class="fa-solid fa-chevron-left"></i>
+                        </button>
+                        <h2 class="text-2xl font-extrabold text-slate-900">Feedback</h2>
+                    </div>
+                    <p class="text-slate-500 text-sm mb-8">How can we improve your experience?</p>
+                    
+                    <div class="space-y-6">
+                        <div>
+                            <label class="block text-xs font-black uppercase text-slate-400 mb-3">Rate your experience</label>
+                            <div class="flex justify-between px-2">
+                                <button onclick="setFeedbackRating(1)" class="rating-star text-slate-200 text-3xl"><i class="fa-solid fa-star"></i></button>
+                                <button onclick="setFeedbackRating(2)" class="rating-star text-slate-200 text-3xl"><i class="fa-solid fa-star"></i></button>
+                                <button onclick="setFeedbackRating(3)" class="rating-star text-slate-200 text-3xl"><i class="fa-solid fa-star"></i></button>
+                                <button onclick="setFeedbackRating(4)" class="rating-star text-slate-200 text-3xl"><i class="fa-solid fa-star"></i></button>
+                                <button onclick="setFeedbackRating(5)" class="rating-star text-slate-200 text-3xl"><i class="fa-solid fa-star"></i></button>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-black uppercase text-slate-400 mb-2">Detailed Comments</label>
+                            <textarea id="feedback-text" rows="5" class="profile-input w-full px-5 py-4 rounded-2xl bg-white outline-none text-slate-700 font-medium text-sm resize-none" placeholder="Share your thoughts..."></textarea>
+                        </div>
+                        <button onclick="submitFeedback()" class="w-full bg-slate-900 text-white py-5 rounded-[24px] font-bold text-lg shadow-xl active:scale-95 transition-transform">
+                            Send Feedback
                         </button>
                     </div>
                 </div>
-            `).join('');
+
+            </div>
+
+            <!-- Bottom Nav -->
+            <nav id="bottom-nav" class="bottom-nav fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[450px] bg-white/95 backdrop-blur-md border-t border-slate-100 px-8 py-4 flex justify-between items-center z-50 rounded-t-[40px] shadow-2xl">
+                <button class="nav-item active flex flex-col items-center gap-1" onclick="navigateTo('Home', this)">
+                    <i class="fa-solid fa-house-chimney text-lg"></i>
+                    <span class="text-[9px] font-black uppercase tracking-tighter">Home</span>
+                </button>
+                <button class="nav-item text-slate-300 flex flex-col items-center gap-1" onclick="navigateTo('Schedule', this)">
+                    <i class="fa-solid fa-calendar-day text-lg"></i>
+                    <span class="text-[9px] font-black uppercase tracking-tighter">Schedule</span>
+                </button>
+                <button class="nav-item text-slate-300 flex flex-col items-center gap-1" onclick="navigateTo('Reports', this)">
+                    <i class="fa-solid fa-file-waveform text-lg"></i>
+                    <span class="text-[9px] font-black uppercase tracking-tighter">Reports</span>
+                </button>
+                <button class="nav-item text-slate-300 flex flex-col items-center gap-1" onclick="navigateTo('Profile', this)">
+                    <i class="fa-solid fa-circle-user text-lg"></i>
+                    <span class="text-[9px] font-black uppercase tracking-tighter">Profile</span>
+                </button>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Booking Confirmation Modal -->
+    <div id="booking-modal" class="modal-overlay">
+        <div class="bg-white w-full rounded-[40px] p-8 text-center shadow-2xl">
+            <div class="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 text-3xl">
+                <i class="fa-solid fa-check"></i>
+            </div>
+            <h2 class="text-2xl font-extrabold text-slate-900 mb-2">Booking Confirmed!</h2>
+            <p class="text-slate-500 mb-8" id="modal-details">Your appointment has been successfully scheduled.</p>
+            <button onclick="closeModal()" class="w-full bg-slate-900 text-white py-4 rounded-2xl font-bold">Great, Thanks!</button>
+        </div>
+    </div>
+
+    <div id="toast">Message</div>
+
+    <script>
+        // Data Structures
+        let userEmail = "";
+        let appointments = [];
+        let feedbackRating = 0;
+        
+        let userData = {
+            name: "John Doe",
+            blood: "B+",
+            gender: "Male",
+            phone: "+91 98765 43210",
+            avatarSeed: "Felix"
+        };
+
+        const paymentHistory = [
+            { id: 'TXN1024', doctor: 'Dr. Amit Sharma', date: 'Mar 18, 2024', amount: 600, status: 'Completed' },
+            { id: 'TXN1021', doctor: 'Dr. Priya Singh', date: 'Mar 12, 2024', amount: 400, status: 'Completed' },
+            { id: 'TXN0988', doctor: 'Lab Report Fee', date: 'Mar 05, 2024', amount: 1200, status: 'Refunded' }
+        ];
+
+        const doctors = [
+            { 
+                id: 1, name: "Dr. Amit Sharma", category: "Heart", specialty: "Senior Cardiologist", 
+                rating: 4.9, fee: 600, crowd: "low", img: "Amit", exp: "12 yrs exp",
+                bio: "Expert in interventional cardiology and heart failure management with over 500 successful procedures.",
+                location: "Apollo Heart Centre, Salt Lake, Sector V",
+                facilities: ["Advanced ECG", "Emergency ICU", "Pharmacy", "Free WiFi"],
+                coords: { x: 45, y: 55 }
+            },
+            { 
+                id: 2, name: "Dr. Priya Singh", category: "Dental", specialty: "Orthodontist", 
+                rating: 4.7, fee: 400, crowd: "moderate", img: "Priya", exp: "8 yrs exp",
+                bio: "Specializing in cosmetic dentistry and painless root canal treatments.",
+                location: "Singh Dental Clinic, Park Street",
+                facilities: ["Digital X-Ray", "Sterilized Lab", "Waiting Lounge"],
+                coords: { x: 60, y: 40 }
+            },
+            { 
+                id: 3, name: "Dr. Rahul Verma", category: "General", specialty: "Physician", 
+                rating: 4.5, fee: 300, crowd: "busy", img: "Rahul", exp: "15 yrs exp",
+                bio: "Focuses on holistic primary care and lifestyle-based disease management.",
+                location: "Wellness Clinic, Gariahat Crossing",
+                facilities: ["Pathology Lab", "Vaccination Centre", "Parking"],
+                coords: { x: 30, y: 70 }
+            },
+            { 
+                id: 4, name: "Dr. Sameer Khan", category: "Eye", specialty: "Ophthalmologist", 
+                rating: 4.8, fee: 500, crowd: "low", img: "Felix", exp: "10 yrs exp",
+                bio: "LASIK surgery specialist and retinal health expert.",
+                location: "Vision Eye Care, New Town",
+                facilities: ["Laser Room", "Optical Shop", "Post-Op Lounge"],
+                coords: { x: 75, y: 35 }
+            }
+        ];
+
+        const specialtyList = [
+            { name: "General", icon: "fa-stethoscope", color: "blue" },
+            { name: "Dental", icon: "fa-tooth", color: "emerald" },
+            { name: "Heart", icon: "fa-heart-pulse", color: "rose" },
+            { name: "Eye Care", icon: "fa-eye", color: "amber" },
+            { name: "Brain", icon: "fa-brain", color: "indigo" },
+            { name: "Skin", icon: "fa-sun", color: "orange" },
+            { name: "Bone", icon: "fa-bone", color: "slate" },
+            { name: "Lungs", icon: "fa-lungs", color: "cyan" }
+        ];
+
+        window.onload = () => {
+            renderDoctors(doctors);
+            renderSpecialtyGrid(specialtyList);
+        };
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.innerText = message;
+            toast.classList.add("show");
+            setTimeout(() => toast.classList.remove("show"), 3000);
         }
 
-        function openDoctorDetail(docId) {
-            const doc = doctors.find(d => d.id === docId);
-            const detailView = document.getElementById('doctor-detail-view');
+        function handleAuth(event) {
+            event.preventDefault();
+            userEmail = document.getElementById('email').value;
+            userData.name = userEmail.split('@')[0].charAt(0).toUpperCase() + userEmail.split('@')[0].slice(1);
             
-            document.getElementById('detail-doc-banner').src = `https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&q=80&w=400`;
-            document.getElementById('detail-doc-img').src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${doc.name}`;
-            document.getElementById('detail-doc-name').innerText = doc.name;
-            document.getElementById('detail-doc-specialty').innerText = doc.specialty;
-            document.getElementById('detail-doc-rating').innerText = doc.rating;
-            document.getElementById('detail-doc-about').innerText = doc.about;
-            document.getElementById('detail-doc-fee').innerText = `₹${doc.fee}`;
+            const btn = document.getElementById('loginBtn');
+            btn.innerHTML = '<span class="loader"></span> Signing In...';
+            btn.disabled = true;
+
+            setTimeout(() => {
+                document.getElementById('login-page').classList.add('exit-left');
+                updateProfileUI();
+                setTimeout(() => {
+                    document.getElementById('login-page').classList.add('page-hidden');
+                    const dashboard = document.getElementById('main-dashboard');
+                    dashboard.classList.remove('page-hidden');
+                    dashboard.classList.add('enter-right');
+                    setTimeout(() => dashboard.classList.remove('enter-right'), 50);
+                }, 500);
+            }, 1000);
+        }
+
+        function updateProfileUI() {
+            document.getElementById('profile-display-name').innerText = userData.name;
+            document.getElementById('profile-display-blood').innerText = `Blood Group: ${userData.blood} Positive`;
+            document.getElementById('profile-avatar').src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${userData.avatarSeed}`;
+            document.getElementById('header-avatar').src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${userData.avatarSeed}`;
             
-            const facilityContainer = document.getElementById('detail-facilities');
-            facilityContainer.innerHTML = doc.facilities.map(fac => `
-                <div class="flex items-center gap-3 bg-white p-3 rounded-2xl border border-gray-100">
-                    <div class="w-8 h-8 rounded-lg bg-primary/5 text-primary flex items-center justify-center">
-                        <i class="fa-solid fa-${facilityIcons[fac] || 'check'} text-[10px]"></i>
+            // Populate form fields
+            document.getElementById('edit-name').value = userData.name;
+            document.getElementById('edit-blood').value = userData.blood;
+            document.getElementById('edit-gender').value = userData.gender;
+            document.getElementById('edit-phone').value = userData.phone;
+        }
+
+        function saveProfile(e) {
+            e.preventDefault();
+            userData.name = document.getElementById('edit-name').value;
+            userData.blood = document.getElementById('edit-blood').value;
+            userData.gender = document.getElementById('edit-gender').value;
+            userData.phone = document.getElementById('edit-phone').value;
+            
+            updateProfileUI();
+            showToast("Profile Updated!");
+            navigateTo('Profile');
+        }
+
+        function renderPayments() {
+            const list = document.getElementById('payments-list');
+            list.innerHTML = '';
+            paymentHistory.forEach(p => {
+                const statusColor = p.status === 'Completed' ? 'emerald' : 'rose';
+                list.innerHTML += `
+                    <div class="bg-white p-5 rounded-[28px] border border-slate-100 shadow-sm flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center text-slate-400">
+                                <i class="fa-solid fa-receipt text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-slate-800">${p.doctor}</h4>
+                                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider">${p.date} • ${p.id}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-black text-slate-900">₹${p.amount}</p>
+                            <p class="text-[9px] font-black text-${statusColor}-500 uppercase">${p.status}</p>
+                        </div>
                     </div>
-                    <span class="text-[11px] font-bold text-textMain">${fac}</span>
+                `;
+            });
+        }
+
+        function setFeedbackRating(val) {
+            feedbackRating = val;
+            const stars = document.querySelectorAll('.rating-star');
+            stars.forEach((star, index) => {
+                if (index < val) {
+                    star.classList.replace('text-slate-200', 'text-amber-400');
+                } else {
+                    star.classList.replace('text-amber-400', 'text-slate-200');
+                }
+            });
+        }
+
+        function submitFeedback() {
+            if (feedbackRating === 0) {
+                showToast("Please select a rating");
+                return;
+            }
+            showToast("Thank you for your feedback!");
+            navigateTo('Profile');
+            // Reset
+            setFeedbackRating(0);
+            document.getElementById('feedback-text').value = '';
+        }
+
+        function renderDoctors(list) {
+            const container = document.getElementById('doctor-list');
+            container.innerHTML = list.length > 0 ? '' : '<p class="text-center text-slate-400 py-10">No doctors found.</p>';
+            
+            list.forEach(doc => {
+                const crowdLabel = doc.crowd === 'low' ? 'Low Crowd' : doc.crowd === 'moderate' ? 'Moderate' : 'Very Busy';
+                const crowdClass = 'status-' + doc.crowd;
+
+                container.innerHTML += `
+                    <div onclick="openDoctorProfile(${doc.id})" class="bg-white rounded-[32px] p-5 shadow-sm border border-slate-50 space-y-4 transition-transform active:scale-[0.98] cursor-pointer">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-16 h-16 rounded-2xl bg-slate-100 overflow-hidden flex-shrink-0">
+                                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${doc.img}" alt="${doc.name}">
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between">
+                                    <h3 class="font-bold text-slate-800">${doc.name}</h3>
+                                    <div class="bg-amber-50 text-amber-600 text-[10px] px-2 py-0.5 rounded-lg font-bold">⭐ ${doc.rating}</div>
+                                </div>
+                                <p class="text-xs text-slate-500 font-medium mt-0.5">${doc.specialty}</p>
+                                <div class="mt-2 flex items-center space-x-3">
+                                    <span class="${crowdClass} text-[9px] px-2 py-0.5 rounded-md font-bold uppercase tracking-widest">${crowdLabel}</span>
+                                    <span class="text-blue-600 font-bold text-xs">₹${doc.fee}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function openDoctorProfile(id) {
+            const doc = doctors.find(d => d.id === id);
+            const container = document.getElementById('doctor-profile-content');
+            
+            container.innerHTML = `
+                <!-- Header -->
+                <div class="bg-white px-6 pt-10 pb-6 rounded-b-[40px] shadow-sm">
+                    <button onclick="navigateTo('Home')" class="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center text-slate-600 mb-6">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    
+                    <div class="flex items-start space-x-6">
+                        <div class="w-24 h-24 rounded-[30px] bg-slate-100 overflow-hidden">
+                            <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${doc.img}" alt="doc">
+                        </div>
+                        <div class="flex-1 pt-2">
+                            <h2 class="text-2xl font-bold text-slate-900">${doc.name}</h2>
+                            <p class="text-blue-600 font-bold text-sm mt-1">${doc.specialty}</p>
+                            <div class="flex items-center space-x-4 mt-4">
+                                <div class="text-center">
+                                    <p class="text-xs text-slate-400 font-bold uppercase">Experience</p>
+                                    <p class="text-sm font-black text-slate-800">${doc.exp}</p>
+                                </div>
+                                <div class="h-8 w-[1px] bg-slate-100"></div>
+                                <div class="text-center">
+                                    <p class="text-xs text-slate-400 font-bold uppercase">Rating</p>
+                                    <p class="text-sm font-black text-slate-800">${doc.rating}</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            `).join('');
 
-            document.getElementById('detail-book-btn').onclick = () => {
-                bookAppointment(doc.id);
-                closeDoctorDetail();
-            };
+                <div class="px-6 py-8 space-y-8">
+                    <!-- Bio -->
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900 mb-2">About Doctor</h3>
+                        <p class="text-slate-500 text-sm leading-relaxed">${doc.bio}</p>
+                    </div>
 
-            detailView.classList.remove('hidden');
-            document.getElementById('main-header').classList.add('hidden');
-            document.getElementById('bottom-nav').classList.add('hidden');
+                    <!-- Facilities -->
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900 mb-4">Clinic Facilities</h3>
+                        <div class="flex flex-wrap gap-3">
+                            ${doc.facilities.map(f => `
+                                <div class="bg-white border border-slate-100 px-4 py-2 rounded-2xl flex items-center space-x-2">
+                                    <i class="fa-solid fa-circle-check text-emerald-500 text-[10px]"></i>
+                                    <span class="text-xs font-bold text-slate-600">${f}</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+
+                    <!-- Location & Map -->
+                    <div>
+                        <h3 class="text-lg font-bold text-slate-900 mb-2">Clinic Location</h3>
+                        <div class="flex items-start space-x-2 text-slate-500 text-xs mb-4">
+                            <i class="fa-solid fa-location-dot mt-0.5 text-rose-500"></i>
+                            <span>${doc.location}</span>
+                        </div>
+                        <div class="map-container w-full h-48 rounded-[32px] border-4 border-white shadow-lg">
+                            <div class="map-marker">
+                                <i class="fa-solid fa-location-dot text-4xl"></i>
+                            </div>
+                            <div class="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur-sm p-3 rounded-xl flex items-center justify-between">
+                                <span class="text-[10px] font-black uppercase text-slate-700">Open Map Navigation</span>
+                                <i class="fa-solid fa-diamond-turn-right text-blue-600"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Button -->
+                    <button onclick="bookAppointment(${doc.id})" class="w-full bg-slate-900 text-white py-5 rounded-[24px] font-bold text-lg shadow-xl active:scale-95 transition-transform">
+                        Book Appointment (₹${doc.fee})
+                    </button>
+                </div>
+            `;
+
+            navigateTo('DoctorDetails');
         }
 
-        function closeDoctorDetail() {
-            document.getElementById('doctor-detail-view').classList.add('hidden');
-            document.getElementById('main-header').classList.remove('hidden');
-            document.getElementById('bottom-nav').classList.remove('hidden');
+        function renderSpecialtyGrid(list) {
+            const grid = document.getElementById('specialties-grid');
+            grid.innerHTML = '';
+            list.forEach(spec => {
+                grid.innerHTML += `
+                    <div onclick="selectSpecialty('${spec.name}')" class="spec-item flex flex-col items-center justify-center p-4 bg-white rounded-[24px] border border-slate-50 shadow-sm transition-transform active:scale-90">
+                        <div class="w-12 h-12 bg-${spec.color}-50 text-${spec.color}-600 rounded-2xl flex items-center justify-center text-xl mb-2">
+                            <i class="fa-solid ${spec.icon}"></i>
+                        </div>
+                        <span class="text-[10px] font-bold text-slate-700 uppercase tracking-tighter">${spec.name}</span>
+                    </div>
+                `;
+            });
         }
 
-        function filterContent() {
-            const query = document.getElementById('doctorSearch').value.toLowerCase();
-            const filtered = doctors.filter(doc => 
-                (doc.name.toLowerCase().includes(query) || doc.specialty.toLowerCase().includes(query)) &&
-                (!activeCategory || doc.specialty === specialtyMap[activeCategory])
+        function filterSpecialtyList() {
+            const term = document.getElementById('specialtySearch').value.toLowerCase();
+            const filtered = specialtyList.filter(s => s.name.toLowerCase().includes(term));
+            renderSpecialtyGrid(filtered);
+        }
+
+        function selectSpecialty(name) {
+            navigateTo('Home');
+            filterByCategory(name);
+        }
+
+        function filterDoctors() {
+            const term = document.getElementById('doctorSearch').value.toLowerCase();
+            const filtered = doctors.filter(d => 
+                d.name.toLowerCase().includes(term) || 
+                d.specialty.toLowerCase().includes(term)
             );
             renderDoctors(filtered);
         }
 
-        function filterByCategory(catName) {
-            if (activeCategory === catName) {
-                activeCategory = null;
-                document.getElementById('listTitle').innerText = "Recommended";
-                document.getElementById('resetBtn').classList.add('hidden');
-            } else {
-                activeCategory = catName;
-                document.getElementById('listTitle').innerText = `${specialtyMap[catName]}s`;
-                document.getElementById('resetBtn').classList.remove('hidden');
-            }
-            
-            document.querySelectorAll('.category-item').forEach(el => {
-                const isSelected = el.id === `cat-${catName}` && activeCategory;
-                el.classList.toggle('bg-primary', isSelected);
-                el.classList.toggle('bg-white', !isSelected);
-                const iconDiv = el.querySelector('div');
-                iconDiv.classList.toggle('bg-white', isSelected);
-                iconDiv.classList.toggle('bg-primary/5', !isSelected);
-                el.querySelector('span').classList.toggle('text-white', isSelected);
-            });
-            filterContent();
-        }
-
-        function resetFilters() {
-            activeCategory = null;
-            document.getElementById('doctorSearch').value = "";
-            document.getElementById('listTitle').innerText = "Recommended";
-            document.getElementById('resetBtn').classList.add('hidden');
-            document.querySelectorAll('.category-item').forEach(el => {
-                el.classList.remove('bg-primary');
-                el.classList.add('bg-white');
-                const iconDiv = el.querySelector('div');
-                iconDiv.classList.remove('bg-white');
-                iconDiv.classList.add('bg-primary/5');
-                el.querySelector('span').classList.remove('text-white');
-            });
-            renderDoctors(doctors);
-        }
-
-        function navigateTo(pageId) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById(`page-${pageId}`).classList.add('active');
-            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('nav-active', 'text-primary'));
-            document.querySelector(`[data-tab="${pageId}"]`).classList.add('nav-active');
+        function filterByCategory(cat) {
+            document.getElementById('doctorSearch').value = '';
+            const filtered = doctors.filter(d => d.category.toLowerCase().includes(cat.toLowerCase().substring(0,3)));
+            renderDoctors(filtered);
+            showToast(`Showing ${cat} Specialists`);
         }
 
         function bookAppointment(docId) {
-            const doctor = doctors.find(d => d.id === docId);
-            const date = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short' });
-            appointments.push({ ...doctor, appointmentDate: date, appointmentTime: "11:00 AM" });
-            updateAppointmentsUI();
-            document.getElementById('next-apt').innerText = `${date} • ${doctor.name.split(' ')[1]}`;
-            showToast(`Visit Booked with ${doctor.name}`);
+            const doc = doctors.find(d => d.id === docId);
+            const date = new Date();
+            const time = "05:00 PM";
+            const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+
+            const newApp = { 
+                id: Date.now(), 
+                doctor: doc.name, 
+                specialty: doc.specialty, 
+                date: dateStr, 
+                time: time,
+                img: doc.img
+            };
+
+            appointments.unshift(newApp);
+            document.getElementById('modal-details').innerText = `Appointment with ${doc.name} confirmed for today at ${time}.`;
+            document.getElementById('booking-modal').classList.add('active');
         }
 
-        function updateAppointmentsUI() {
-            const list = document.getElementById('appointmentsList');
-            if (appointments.length > 0) {
-                document.getElementById('emptyAppointments').classList.add('hidden');
-                list.innerHTML = appointments.map((app, index) => `
-                    <div class="bg-white p-4 rounded-3xl border border-gray-100 flex items-center">
-                        <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${app.name}" class="w-12 h-12 rounded-2xl mr-4">
-                        <div class="flex-1 min-w-0">
-                            <h4 class="font-bold text-xs truncate">${app.name}</h4>
-                            <p class="text-[10px] text-textMuted font-medium">${app.appointmentDate} at ${app.appointmentTime}</p>
-                        </div>
-                        <button onclick="cancelAppointment(${index})" class="text-red-400 p-2"><i class="fa-solid fa-trash-can text-xs"></i></button>
-                    </div>
-                `).join('');
-            } else {
-                document.getElementById('emptyAppointments').classList.remove('hidden');
-                list.innerHTML = "";
+        function renderAppointments() {
+            const container = document.getElementById('appointments-container');
+            if (appointments.length === 0) {
+                container.innerHTML = `<div class="text-center py-20 opacity-40"><p class="font-bold">No upcoming visits</p></div>`;
+                return;
             }
+            container.innerHTML = '';
+            appointments.forEach(app => {
+                container.innerHTML += `
+                    <div class="bg-white p-5 rounded-[32px] border border-slate-100 shadow-sm relative overflow-hidden">
+                        <div class="absolute left-0 top-0 w-2 h-full bg-blue-500"></div>
+                        <div class="flex items-center space-x-4">
+                             <div class="w-12 h-12 rounded-xl bg-slate-100 overflow-hidden">
+                                <img src="https://api.dicebear.com/7.x/avataaars/svg?seed=${app.img}" alt="doc">
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-bold text-slate-800">${app.doctor}</h4>
+                                <p class="text-[10px] text-blue-600 font-bold uppercase">${app.specialty}</p>
+                                <div class="mt-3 flex items-center space-x-3">
+                                    <span class="text-[10px] font-bold text-slate-500 bg-slate-50 px-2 py-1 rounded-lg">${app.date} @ ${app.time}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
         }
 
-        function cancelAppointment(index) {
-            appointments.splice(index, 1);
-            updateAppointmentsUI();
-            showToast(`Cancelled`);
+        function closeModal() {
+            document.getElementById('booking-modal').classList.remove('active');
+            navigateTo('Schedule');
         }
 
-        function showToast(message) {
-            const toast = document.getElementById('toast');
-            toast.textContent = message;
-            toast.classList.remove('hidden');
-            setTimeout(() => toast.classList.add('hidden'), 2500);
+        function navigateTo(viewName, btn = null) {
+            // UI Toggle Logic
+            const hideNav = ['AllSpecialties', 'DoctorDetails', 'EditProfile', 'Payments', 'Feedback'].includes(viewName);
+            document.getElementById('bottom-nav').style.transform = hideNav ? 'translate(-50%, 150%)' : 'translate(-50%, 0)';
+
+            // Nav Highlighting
+            if (btn) {
+                document.querySelectorAll('.nav-item').forEach(el => {
+                    el.classList.remove('active', 'text-blue-600');
+                    el.classList.add('text-slate-300');
+                });
+                btn.classList.add('active', 'text-blue-600');
+                btn.classList.remove('text-slate-300');
+            }
+
+            // View Management
+            document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active'));
+            const target = document.getElementById(`view-${viewName.toLowerCase()}`);
+            if(target) target.classList.add('active');
+            
+            if (viewName === 'Schedule') renderAppointments();
+            if (viewName === 'Home') renderDoctors(doctors);
+            if (viewName === 'Payments') renderPayments();
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     </script>
 </body>
